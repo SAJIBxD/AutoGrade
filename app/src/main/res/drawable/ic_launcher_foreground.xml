@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Back sheet -->
+    <path
+        android:fillColor="#D9A879"
+        android:pathData="
+            M30,31
+            L69,25
+            C72,25 74,27 74,30
+            L80,75
+            C81,79 78,82 75,83
+            L39,88
+            C35,89 32,86 32,82
+            Z" />
+
+    <!-- Main paper -->
+    <path
+        android:fillColor="#FFFDF7"
+        android:pathData="
+            M28,25
+            C28,22 30,20 33,20
+            L64,20
+            L76,32
+            L80,76
+            C80,80 77,83 73,83
+            L34,83
+            C30,83 28,80 28,77
+            Z" />
+
+    <!-- Folded corner -->
+    <path
+        android:fillColor="#F2B982"
+        android:pathData="
+            M64,20
+            L64,31
+            C64,33 66,34 68,34
+            L76,32
+            Z" />
+
+    <!-- Text line -->
+    <path
+        android:fillColor="#A47760"
+        android:pathData="
+            M37,34
+            H61
+            C63,34 64,35 64,37
+            C64,39 63,40 61,40
+            H37
+            C35,40 34,39 34,37
+            C34,35 35,34 37,34
+            Z" />
+
+    <!-- Text line -->
+    <path
+        android:fillColor="#A47760"
+        android:pathData="
+            M37,44
+            H64
+            C66,44 67,45 67,47
+            C67,49 66,50 64,50
+            H37
+            C35,50 34,49 34,47
+            C34,45 35,44 37,44
+            Z" />
+
+    <!-- Text line -->
+    <path
+        android:fillColor="#A47760"
+        android:pathData="
+            M37,54
+            H54
+            C56,54 57,55 57,57
+            C57,59 56,60 54,60
+            H37
+            C35,60 34,59 34,57
+            C34,55 35,54 37,54
+            Z" />
+
+    <!-- A -->
+    <path
+        android:fillColor="#E4512E"
+        android:pathData="
+            M37,75
+            L44,57
+            C44.5,55.5 45.5,55 47,55
+            C48.5,55 49.5,55.5 50,57
+            L57,75
+            H51
+            L49.5,70
+            H42.5
+            L41,75
+            Z
+
+            M44,66
+            H48
+            L46,60
+            Z" />
+
+    <!-- Plus -->
+    <path
+        android:fillColor="#E4512E"
+        android:pathData="
+            M59,62
+            H64
+            V57
+            H69
+            V62
+            H74
+            V67
+            H69
+            V72
+            H64
+            V67
+            H59
+            Z" />
+
+    <!-- Brush handle -->
+    <path
+        android:fillColor="#713A2B"
+        android:pathData="
+            M69,66
+            L82,46
+            C84,43 87,42 89,44
+            C91,45 91,48 89,51
+            L77,70
+            Z" />
+
+    <!-- Brush metal ring -->
+    <path
+        android:fillColor="#E7B66F"
+        android:pathData="
+            M75,57
+            L79,51
+            L84,54
+            L80,61
+            Z" />
+
+    <!-- Brush bristles -->
+    <path
+        android:fillColor="#E4512E"
+        android:pathData="
+            M69,66
+            L77,70
+            L72,78
+            C70,81 67,83 64,84
+            C65,80 66,76 67,72
+            Z" />
+
+    <!-- Brush tip -->
+    <path
+        android:fillColor="#C63F25"
+        android:pathData="
+            M64,84
+            C65,80 67,76 69,73
+            L73,77
+            C70,81 67,83 64,84
+            Z" />
+
+    <!-- Painted underline -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E4512E"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="
+            M39,78
+            C47,75 55,73 64,72" />
+
+</vector>
