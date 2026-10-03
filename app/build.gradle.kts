@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,27 +17,25 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Emulator -> host Django: 10.0.2.2 . Override with -PbaseUrl for device/prod.
-        val baseUrl = providers.gradleProperty("baseUrl").getOrElse("http://10.0.2.2:8000/")
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { stream ->
+                localProperties.load(stream)
+            }
+        }
+
+        // Emulator -> host Django: 10.0.2.2. Override with -PbaseUrl or in local.properties.
+        val baseUrl = providers.gradleProperty("baseUrl")
+            .getOrElse(localProperties.getProperty("baseUrl", "http://10.0.2.2:8000/"))
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
-        // Must match backend GOOGLE_CLIENT_ID in backend/.env.
-        // Priority: -PgoogleWebClientId flag, else backend/.env (same repo).
+
+        // Must match backend GOOGLE_CLIENT_ID
+        // Priority: -PgoogleWebClientId flag, else local.properties
         // Pass with: ./gradlew :app:installDebug -PgoogleWebClientId=xxx.apps.googleusercontent.com
-        val googleWebClientId = providers.gradleProperty("googleWebClientId").getOrElse(
-            rootProject.projectDir.resolve("../backend/.env").let { f ->
-                if (f.exists()) {
-                    f.readLines()
-                        .map { it.trim() }
-                        .firstOrNull { it.startsWith("GOOGLE_CLIENT_ID=") }
-                        ?.substringAfter("=")
-                        ?.trim()
-                        ?.trim('"', '\'')
-                        .orEmpty()
-                } else {
-                    ""
-                }
-            },
-        )
+        val googleWebClientId = providers.gradleProperty("googleWebClientId")
+            .getOrElse(localProperties.getProperty("googleWebClientId", ""))
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
