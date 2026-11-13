@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Locations the camera app may write to via FileProvider. -->
+<paths>
+    <cache-path name="omr_captures" path="omr_captures/" />
+</paths>

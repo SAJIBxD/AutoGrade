@@ -1,5 +1,7 @@
 package com.autograde.ui.assessment
 
+import android.content.ActivityNotFoundException
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -21,6 +23,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,19 +47,19 @@ import com.autograde.ui.theme.AutoGradeTheme
 import com.autograde.ui.theme.Ink
 import com.autograde.ui.theme.Line
 import com.autograde.ui.theme.Muted
+import com.autograde.util.newCameraCapture
 import com.autograde.util.uriToFile
 import java.io.File
 
-/** Answer sheets can be scans (images) or exported PDFs. */
+/** Answer sheets can be photos (images) or exported PDFs. */
 private val SHEET_MIME_TYPES = arrayOf("image/*", "application/pdf")
 
-/** OMR step 2 — collect student answer sheets via camera or file upload. */
+/** OMR step 2 — collect student answer sheets by taking photos or uploading files. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollectSubmissionsScreen(
     state: AssessmentUiState,
     onBack: () -> Unit,
-    onScan: () -> Unit,
     onUpload: (List<File>) -> Unit,
     onRemove: (id: Long) -> Unit,
     onContinue: () -> Unit,
@@ -67,13 +73,36 @@ fun CollectSubmissionsScreen(
         if (files.isNotEmpty()) onUpload(files)
     }
 
+    // Path of the photo the camera app is writing. Saveable, because the camera
+    // can push this activity out of memory before it returns.
+    var pendingPhoto by rememberSaveable { mutableStateOf<String?>(null) }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val photo = pendingPhoto?.let(::File)
+        pendingPhoto = null
+        when {
+            photo == null -> Unit
+            saved && photo.length() > 0 -> onUpload(listOf(photo))
+            else -> photo.delete()
+        }
+    }
+    val takePhoto: () -> Unit = {
+        val (file, uri) = context.newCameraCapture()
+        pendingPhoto = file.absolutePath
+        try {
+            camera.launch(uri)
+        } catch (_: ActivityNotFoundException) {
+            pendingPhoto = null
+            Toast.makeText(context, "No camera app found on this device", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val ready = state.uploadedSubmissions
     OmrFlowScaffold(
         title = "Answer sheets",
         step = 2,
         onBack = onBack,
         modifier = modifier,
-        subtitle = "Scan or upload your students' filled-in OMR sheets.",
+        subtitle = "Take photos of or upload your students' filled-in OMR sheets.",
         bottomBar = {
             PrimaryButton(
                 when {
@@ -95,9 +124,9 @@ fun CollectSubmissionsScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SourceCard(
                         iconRes = R.drawable.ic_camera,
-                        title = "Scan",
-                        subtitle = "Use the camera",
-                        onClick = onScan,
+                        title = "Take photo",
+                        subtitle = "One sheet per photo",
+                        onClick = takePhoto,
                         modifier = Modifier.weight(1f),
                     )
                     SourceCard(
@@ -188,7 +217,7 @@ private fun CollectSubmissionsPreview() {
                     UploadedFile("sheet_002.jpg", "1.6 MB", UploadState.UPLOADING, id = 2),
                 ),
             ),
-            onBack = {}, onScan = {}, onUpload = {}, onRemove = {}, onContinue = {},
+            onBack = {}, onUpload = {}, onRemove = {}, onContinue = {},
         )
     }
 }

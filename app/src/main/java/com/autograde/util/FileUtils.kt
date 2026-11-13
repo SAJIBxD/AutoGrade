@@ -3,7 +3,23 @@ package com.autograde.util
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.core.content.FileProvider
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/**
+ * Creates an empty cache file for the camera app to write a photo into, and the
+ * content:// URI it should write through (see res/xml/file_paths.xml).
+ */
+fun Context.newCameraCapture(): Pair<File, Uri> {
+    val dir = File(cacheDir, "omr_captures").apply { mkdirs() }
+    val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+    val file = File(dir, "sheet_${stamp}_${System.nanoTime() % 1000}.jpg")
+    val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+    return file to uri
+}
 
 /**
  * Copies a picked content:// [uri] into the cache directory so it can be sent

@@ -45,7 +45,6 @@ import com.autograde.ui.dashboard.navigateToTab
 import com.autograde.ui.login.LoginScreen
 import com.autograde.ui.profile.ProfileScreen
 import com.autograde.ui.result.ResultScreen
-import com.autograde.ui.scan.ScanScreen
 import com.autograde.ui.theme.Bg
 
 /** Every route in the app, so hosts and screens can't drift apart on names. */
@@ -65,7 +64,6 @@ object Routes {
     const val OMR_FLOW = "omr"
     const val CREATE = "omr/create"
     const val COLLECT = "omr/collect"
-    const val SCAN = "omr/scan"
     const val ANSWER_KEY = "omr/answer_key"
     const val PROCESSING = "omr/processing"
     const val SUBMISSIONS = "omr/submissions"
@@ -222,20 +220,9 @@ fun AutoGradeAppNav(
                     CollectSubmissionsScreen(
                         state = state,
                         onBack = { nav.popFrom(entry) },
-                        onScan = { nav.navigateFrom(entry, Routes.SCAN) },
                         onUpload = vm::uploadSubmissions,
                         onRemove = vm::removeSubmission,
                         onContinue = { nav.navigateFrom(entry, Routes.ANSWER_KEY) },
-                    )
-                }
-                composable(Routes.SCAN) { entry ->
-                    ScanScreen(
-                        onBack = { nav.popFrom(entry) },
-                        // Replace the camera with the answer key, so Back from
-                        // there returns to the sheet list rather than the camera.
-                        onCapture = {
-                            nav.navigateFrom(entry, Routes.ANSWER_KEY) { popUpTo(Routes.COLLECT) }
-                        },
                     )
                 }
                 composable(Routes.ANSWER_KEY) { entry ->
