@@ -1,15 +1,29 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# --- Gradle / Kotlin ---
+.gradle/
+build/
+.kotlin/
+*.hprof
+
+# --- Local config & secrets (baseUrl, googleWebClientId live here) ---
 local.properties
+*.jks
+*.keystore
+google-services.json
+secrets.properties
+
+# --- Android Studio / IntelliJ ---
+*.iml
+/captures/
+.externalNativeBuild/
+.cxx/
+# Keep shared project settings; ignore anything machine- or user-specific.
+/.idea/*
+!/.idea/codeStyles/
+!/.idea/inspectionProfiles/
+!/.idea/runConfigurations.xml
+!/.idea/vcs.xml
+!/.idea/.name
+
+# --- OS ---
+.DS_Store
+Thumbs.db

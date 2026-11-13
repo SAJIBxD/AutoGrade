@@ -15,7 +15,7 @@ class ProfileRepository(private val api: ApiService) {
     suspend fun load(id: String): ApiResult<Profile> {
         return try {
             val res = api.profile(id)
-            if (res.isSuccessful && res.body() != null) {
+            if ((res.isSuccessful) && (res.body() != null)) {
                 ApiResult.Ok(res.body()!!)
             } else {
                 ApiResult.Err(retrofitErrorMessage(res.code(), res.errorBody()?.string()), res.code())
@@ -28,7 +28,7 @@ class ProfileRepository(private val api: ApiService) {
     suspend fun update(id: String, patch: ProfilePatch): ApiResult<Profile> {
         return try {
             val res = api.updateProfile(id, patch)
-            if (res.isSuccessful && res.body() != null) {
+            if ((res.isSuccessful) && (res.body() != null)) {
                 ApiResult.Ok(res.body()!!)
             } else {
                 ApiResult.Err(retrofitErrorMessage(res.code(), res.errorBody()?.string()), res.code())

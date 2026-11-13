@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- System bar colour used by the window theme (Compose draws everything else). -->
+    <color name="ag_bg">#161412</color>
+</resources>

@@ -20,9 +20,11 @@ private fun baseUrl(): String {
     return if (raw.endsWith("/")) raw else "$raw/"
 }
 
-private class AuthInterceptor(private val store: TokenStore) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
-        val token = runBlocking { store.accessToken() }
+private class AuthInterceptor(private val refresher: TokenRefresher) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        // Refresh proactively when expired: a burst of parallel uploads then
+        // goes out with one already-fresh token instead of racing on 401s.
+        val token = runBlocking { refresher.usableAccessToken() }
         val req = if (token != null) {
             chain.request().newBuilder()
                 .header("Authorization", "Bearer $token")
@@ -35,26 +37,17 @@ private class AuthInterceptor(private val store: TokenStore) : Interceptor {
 }
 
 private class RefreshAuthenticator(
-    private val store: TokenStore,
+    private val refresher: TokenRefresher,
 ) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
         if (responseCount(response) >= 2) return null
         // Don't loop on the refresh endpoint itself.
         if (response.request.url.encodedPath.contains("token/refresh")) return null
-        val refresh = runBlocking { store.refreshToken() } ?: return null
-        val plain = plainRetrofit()
-        val res = runBlocking {
-            try {
-                plain.refresh(RefreshRequest(refresh))
-            } catch (_: Exception) {
-                null
-            }
-        } ?: return null
-        if (!res.isSuccessful) return null
-        val body = res.body() ?: return null
-        runBlocking { store.saveTokens(body.accessToken, body.refreshToken) }
+        val rejected = response.request.header("Authorization")
+            ?.removePrefix("Bearer ")?.trim()
+        val fresh = runBlocking { refresher.refreshAfterRejection(rejected) } ?: return null
         return response.request.newBuilder()
-            .header("Authorization", "Bearer ${body.accessToken}")
+            .header("Authorization", "Bearer $fresh")
             .build()
     }
 
@@ -67,33 +60,40 @@ private class RefreshAuthenticator(
         }
         return c
     }
-
-    private fun plainRetrofit(): ApiService {
-        val client = OkHttpClient.Builder().build()
-        return Retrofit.Builder()
-            .baseUrl(baseUrl())
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
-    }
 }
 
 object RetrofitProvider {
     fun create(store: TokenStore): ApiService {
+        // Headerless client for the refresh call — no auth interceptor and no
+        // authenticator, so a refresh can never recurse into another refresh.
+        val plain = Retrofit.Builder()
+            .baseUrl(baseUrl())
+            .client(OkHttpClient.Builder().build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+
+        val refresher = TokenRefresher(
+            storedAccess = { store.accessToken() },
+            storedRefresh = { store.refreshToken() },
+            persist = { access, refresh -> store.saveTokens(access, refresh) },
+            clearSession = { store.clear() },
+            remoteRefresh = { refresh -> plain.refresh(RefreshRequest(refresh)) },
+        )
+
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(store))
-            .authenticator(RefreshAuthenticator(store))
+            .addInterceptor(AuthInterceptor(refresher))
+            .authenticator(RefreshAuthenticator(refresher))
             .addInterceptor(logging)
             .build()
         return Retrofit.Builder()
             .baseUrl(baseUrl())
             .client(client)
             .addConverterFactory(
-                GsonConverterFactory.create(GsonBuilder().setLenient().create()),
+                GsonConverterFactory.create(GsonBuilder().create()),
             )
             .build()
             .create(ApiService::class.java)

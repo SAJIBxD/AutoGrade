@@ -1,6 +1,7 @@
 package com.autograde.network
 
 import com.autograde.data.model.AuthResponse
+import com.autograde.data.model.FileUploadResponse
 import com.autograde.data.model.GoogleAuth
 import com.autograde.data.model.ImageUploadResponse
 import com.autograde.data.model.OtpRequest
@@ -54,4 +55,12 @@ interface ApiService {
 
     @DELETE("api/file/image/{id}/")
     suspend fun deleteImage(@Path("id") id: Int): Response<Unit>
+
+    /** Question papers, rubrics, scanned answer sheets — field name must be "file". */
+    @Multipart
+    @POST("api/file/file/")
+    suspend fun uploadFile(@Part file: MultipartBody.Part): Response<FileUploadResponse>
+
+    @DELETE("api/file/file/{id}/")
+    suspend fun deleteFile(@Path("id") id: Int): Response<Unit>
 }

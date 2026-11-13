@@ -39,5 +39,5 @@ class TokenStore(private val context: Context) {
         context.prefs.data.map { it[userId] }.first()
 
     suspend fun isLoggedIn(): Boolean =
-        accessToken() != null && userId() != null
+        (accessToken() != null) && (userId() != null)
 }

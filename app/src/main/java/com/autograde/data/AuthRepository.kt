@@ -33,7 +33,7 @@ class AuthRepository(
     suspend fun verifyOtp(email: String, otp: String): ApiResult<AuthResponse> {
         return try {
             val res = api.otpVerify(OtpVerify(email.trim().lowercase(), otp.trim()))
-            if (res.isSuccessful && res.body() != null) {
+            if ((res.isSuccessful) && (res.body() != null)) {
                 val body = res.body()!!
                 store.saveTokens(body.accessToken, body.refreshToken)
                 body.user?.id?.takeIf { it.isNotBlank() }?.let { store.saveUserId(it) }
@@ -52,7 +52,7 @@ class AuthRepository(
     suspend fun google(idToken: String): ApiResult<AuthResponse> {
         return try {
             val res = api.google(GoogleAuth(idToken))
-            if (res.isSuccessful && res.body() != null) {
+            if ((res.isSuccessful) && (res.body() != null)) {
                 val body = res.body()!!
                 store.saveTokens(body.accessToken, body.refreshToken)
                 body.user?.id?.takeIf { it.isNotBlank() }?.let { store.saveUserId(it) }

@@ -39,18 +39,37 @@ class ProfileViewModel(
         viewModelScope.launch {
             val id = fallbackId?.takeIf { it.isNotBlank() } ?: store.userId()
             if (id.isNullOrBlank()) {
-                _state.value = ProfileUiState(message = "No saved session. Please log in again.")
+                expireSession("No saved session. Please log in again.")
                 return@launch
             }
             userId = id
             _state.value = _state.value.copy(loading = true, message = null)
-            _state.value = when (val r = profileRepo.load(id)) {
+            val r = profileRepo.load(id)
+            if (r is ApiResult.Err && r.isAuthFailure()) {
+                expireSession(r.message)
+                return@launch
+            }
+            _state.value = when (r) {
                 is ApiResult.Ok -> ProfileUiState(profile = r.value)
                 is ApiResult.Err -> ProfileUiState(message = r.message)
                 ApiResult.Loading -> _state.value.copy(loading = true)
             }
         }
     }
+
+    /**
+     * The stored session is no longer usable (missing or rejected by the
+     * server): drop it and flag [ProfileUiState.loggedOut] so the host
+     * activity returns to the login screen instead of idling on an empty
+     * dashboard.
+     */
+    private suspend fun expireSession(message: String) {
+        userId = null
+        authRepo.logout()
+        _state.value = ProfileUiState(loggedOut = true, message = message)
+    }
+
+    private fun ApiResult.Err.isAuthFailure() = code == 401 || code == 403
 
     fun save(firstName: String, lastName: String, phone: String) {
         val id = userId ?: return
@@ -61,7 +80,12 @@ class ProfileViewModel(
                 lastName = lastName.ifBlank { null },
                 phone = phone.ifBlank { null },
             )
-            _state.value = when (val r = profileRepo.update(id, patch)) {
+            val r = profileRepo.update(id, patch)
+            if (r is ApiResult.Err && r.isAuthFailure()) {
+                expireSession(r.message)
+                return@launch
+            }
+            _state.value = when (r) {
                 is ApiResult.Ok -> ProfileUiState(profile = r.value, message = "Profile saved")
                 is ApiResult.Err -> _state.value.copy(loading = false, message = r.message)
                 ApiResult.Loading -> _state.value.copy(loading = true)
@@ -77,7 +101,12 @@ class ProfileViewModel(
         }
         _state.value = _state.value.copy(loading = true, message = null)
         viewModelScope.launch {
-            when (val up = profileRepo.uploadImage(file)) {
+            val up = profileRepo.uploadImage(file)
+            if (up is ApiResult.Err && up.isAuthFailure()) {
+                expireSession(up.message)
+                return@launch
+            }
+            when (up) {
                 is ApiResult.Ok -> {
                     val imageId = up.value?.id
                     if (imageId == null) {
@@ -88,7 +117,12 @@ class ProfileViewModel(
                         return@launch
                     }
                     // Link the uploaded image to the profile, then reload.
-                    when (val patched = profileRepo.update(id, ProfilePatch(image = imageId))) {
+                    val patched = profileRepo.update(id, ProfilePatch(image = imageId))
+                    if (patched is ApiResult.Err && patched.isAuthFailure()) {
+                        expireSession(patched.message)
+                        return@launch
+                    }
+                    when (patched) {
                         is ApiResult.Ok -> load(id)
                         is ApiResult.Err -> _state.value = _state.value.copy(
                             loading = false,

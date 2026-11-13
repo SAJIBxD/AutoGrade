@@ -57,8 +57,14 @@ data class ProfilePatch(
     val image: Int? = null,
 )
 
-// api/file/image/ + api/file/file/
+// api/file/image/
 data class ImageUploadResponse(
     val id: Int?,
     @SerializedName("image_path") val imagePath: String?,
+)
+
+// POST api/file/file/ — question papers, rubrics, scanned answer sheets
+data class FileUploadResponse(
+    val id: Int?,
+    @SerializedName("file_path") val filePath: String?,
 )

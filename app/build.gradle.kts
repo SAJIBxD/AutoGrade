@@ -3,16 +3,17 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace = "com.autograde"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.autograde"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -53,18 +54,33 @@ android {
     }
     buildFeatures {
         buildConfig = true
-        viewBinding = true
+        compose = true
     }
 }
 
 dependencies {
+    implementation(platform(libs.compose.bom))
+    androidTestImplementation(platform(libs.compose.bom))
+
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.coil.compose)
+    debugImplementation(libs.compose.ui.tooling)
+
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.coroutines.android)
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
@@ -75,8 +91,6 @@ dependencies {
     implementation(libs.credentials)
     implementation(libs.credentials.play)
     implementation(libs.googleid)
-    implementation(libs.play.auth)
-    implementation(libs.coil)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

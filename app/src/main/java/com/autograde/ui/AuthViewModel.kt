@@ -16,6 +16,8 @@ data class AuthUiState(
     /** Set when the server accepted the OTP request; drives showing the OTP step. */
     val otpSent: Boolean = false,
     val cooldownSeconds: Int = 0,
+    /** Wall-clock time of the last successful OTP request; drives the resend countdown. */
+    val otpSentAt: Long = 0L,
     val auth: AuthResponse? = null,
 )
 
@@ -26,6 +28,11 @@ class AuthViewModel(private val authRepo: AuthRepository) : ViewModel() {
 
     fun consumeMessage() {
         _state.value = _state.value.copy(message = null)
+    }
+
+    /** Leave the code step so the user can enter a different email. */
+    fun editEmail() {
+        _state.value = _state.value.copy(otpSent = false, message = null)
     }
 
     fun requestOtp(rawEmail: String) {
@@ -41,6 +48,7 @@ class AuthViewModel(private val authRepo: AuthRepository) : ViewModel() {
                     loading = false,
                     otpSent = true,
                     cooldownSeconds = 60,
+                    otpSentAt = System.currentTimeMillis(),
                     message = r.value,
                 )
                 is ApiResult.Err -> _state.value.copy(loading = false, message = r.message)
